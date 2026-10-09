@@ -1,0 +1,28 @@
+# yaml-language-server: $schema=https://render.com/schema/render.yaml.json
+# Blueprint de Render: crea el servicio web de Sello con un clic.
+services:
+  - type: web
+    name: sello
+    runtime: node
+    plan: free              # cambia a "starter" cuando tengas clientes (el plan gratis se duerme)
+    region: virginia        # la más cercana a Colombia; si Render la rechaza, borra esta línea
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+    autoDeploy: true        # cada git push a la rama despliega solo
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_SSL
+        value: "true"
+      - key: DATABASE_URL   # Render te la pide al crear el Blueprint (cadena de Neon)
+        sync: false
+      - key: ADMIN_KEY      # Render genera una clave segura; la ves en Environment
+        generateValue: true
+      # BASE_URL no hace falta: la app usa la dirección que Render asigna (RENDER_EXTERNAL_URL).
+      #
+      # Opcionales: agrégalos después en Environment cuando los necesites.
+      # RESEND_API_KEY, EMAIL_FROM_ADDRESS
+      # GOOGLE_ISSUER_ID, GOOGLE_SERVICE_ACCOUNT_JSON
+      # APPLE_PASS_TYPE_ID, APPLE_TEAM_ID, APPLE_WWDR_PATH, APPLE_SIGNER_CERT_PATH, APPLE_SIGNER_KEY_PATH
+      # WHATSAPP_TOKEN, WHATSAPP_PHONE_ID, WHATSAPP_TEMPLATE_INACTIVITY, WHATSAPP_TEMPLATE_BIRTHDAY

@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Sello – administración</title>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F6F6F7;--sf:#fff;--ink:#17171B;--mut:#6C6C78;--line:#E7E7EB;--ac:#0F6B57;--acs:#E4F1ED;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root{--bg:#101012;--sf:#18181B;--ink:#F2F2F4;--mut:#9A9AA6;--line:#2A2A30;--acs:#16302A}}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 15px/1.5 Geist,system-ui,-apple-system,sans-serif;font-variant-numeric:tabular-nums}
+.wrap{max-width:760px;margin:0 auto;padding:0 20px 48px}
+.top{display:flex;justify-content:space-between;align-items:center}
+.brand{display:flex;align-items:center;gap:10px;font-weight:600;font-size:17px;padding:20px 0}
+.brand i{width:22px;height:22px;border-radius:50%;border:2px solid var(--ac);display:grid;place-items:center}.brand i::after{content:"";width:8px;height:8px;border-radius:50%;background:var(--ac)}
+h1{font-size:22px;font-weight:600;letter-spacing:-.02em;margin:0 0 16px}h2{font-size:16px;font-weight:600;margin:0 0 4px}.mut{color:var(--mut);margin:0}
+.panel{background:var(--sf);border:1px solid var(--line);border-radius:20px;padding:22px;margin-bottom:16px}
+.f{display:grid;gap:6px;color:var(--mut);font-size:13px;margin-top:14px}.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+input,select,textarea{font:inherit;font-size:15px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px;min-width:0;width:100%}
+textarea{resize:vertical;line-height:1.5}input[type=color]{padding:3px;height:42px}
+.btn{font:500 14px Geist,system-ui,sans-serif;border-radius:10px;padding:10px 14px;border:1px solid var(--line);background:var(--sf);color:var(--ink);cursor:pointer;text-decoration:none;display:inline-block}.btn.pri{background:var(--ac);border-color:var(--ac);color:#fff}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,a:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+.res{min-height:22px;margin:12px 0 0;font-weight:500;font-size:14px}
+.row{display:flex;gap:14px;align-items:center;justify-content:space-between;padding:14px 0;border-top:1px solid var(--line);flex-wrap:wrap}
+.row b{font-weight:500}.row .mut{font-size:13px}.acts{display:flex;gap:8px;flex-wrap:wrap}
+.ok{background:var(--acs);border-radius:16px;padding:18px;margin-top:16px}.ok img{width:120px;height:120px;background:#fff;padding:8px;border-radius:12px;display:block;margin-bottom:12px}
+.login{max-width:380px;margin:12vh auto 0}.inl{display:flex;gap:10px;margin-top:14px}
+@media (max-width:560px){.two{grid-template-columns:1fr}}
+</style></head>
+<body><div class="wrap"><div class="top"><div class="brand"><i></i>sello</div><button class="btn" id="out" hidden>Salir</button></div><main id="app"></main></div>
+<script>
+const $=s=>document.querySelector(s);
+const esc=t=>String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let KEY='';try{KEY=sessionStorage.getItem('sello_super')||''}catch(e){}
+const api=async(p,o={})=>{const r=await fetch('/api/admin/'+p,{...o,headers:{'Content-Type':'application/json','x-super-key':KEY}});const j=await r.json().catch(()=>({}));if(!r.ok)throw Object.assign(new Error(j.error||'Error'),{status:r.status});return j};
+const ago=d=>{if(!d)return 'sin actividad';const m=Math.round((Date.now()-new Date(d))/60000);return m<1?'ahora':m<60?`hace ${m} min`:m<1440?`hace ${Math.round(m/60)} h`:`hace ${Math.round(m/1440)} d`};
+function login(err){$('#out').hidden=true;$('#app').innerHTML=`<div class="panel login"><h1>Administración</h1><p class="mut">Ingresa tu clave de administrador.</p><div class="inl"><input id="k" type="password" placeholder="Clave" aria-label="Clave de administrador" autocomplete="current-password"><button class="btn pri" id="go">Entrar</button></div><p class="res" role="alert">${err||''}</p></div>`;
+$('#go').onclick=async()=>{KEY=$('#k').value.trim();try{await api('stores');try{sessionStorage.setItem('sello_super',KEY)}catch(e){}load()}catch(e){login(e.status===503?e.message:'Clave inválida. Revísala e inténtalo de nuevo.')}}}
+function message(r){return `Hola, tu tarjeta de fidelidad de ${r.name} ya está lista.\n\nEnlace del sticker (QR o NFC): ${r.links.sticker}\nTu panel: ${r.links.panel}\nTu clave del panel: ${r.key}\n\nGuarda esta clave: no se puede recuperar, solo generar una nueva.`}
+function result(r,title){$('#res-box').innerHTML=`<div class="ok"><h2>${title}</h2><img src="${esc(r.links.qr)}" alt="QR del sticker"><p class="mut" style="margin-bottom:10px">Envía este mensaje al dueño. La clave solo se muestra ahora.</p><textarea id="msg" rows="7" readonly>${esc(message(r))}</textarea><div class="acts" style="margin-top:12px"><button class="btn pri" id="cp">Copiar mensaje</button><a class="btn" href="${esc(r.links.qr)}" download="qr-${esc(r.slug)}.svg">Descargar QR</a></div></div>`;
+$('#cp').onclick=async()=>{try{await navigator.clipboard.writeText($('#msg').value);$('#cp').textContent='Mensaje copiado'}catch(e){$('#msg').select();$('#cp').textContent='Selecciónalo y cópialo'}};$('#res-box').scrollIntoView({behavior:'smooth',block:'nearest'})}
+function paint(d){$('#lst').innerHTML=`<h2>Negocios creados (${d.stores.length})</h2>${d.stores.length?d.stores.map(s=>`<div class="row"><div><b>${esc(s.name)}</b><p class="mut">${s.customers} clientes, ${s.stamps} sellos, ${ago(s.last_activity)}</p></div><div class="acts"><a class="btn" href="${esc(s.links.sticker)}" target="_blank" rel="noopener">Ver sticker</a><button class="btn" data-k="${esc(s.slug)}">Nueva clave</button></div></div>`).join(''):'<p class="mut" style="margin-top:8px">Aún no has creado negocios.</p>'}`;
+document.querySelectorAll('[data-k]').forEach(b=>b.onclick=async()=>{if(!confirm('Se invalidará la clave actual de este negocio. ¿Continuar?'))return;try{const r=await api('stores/'+b.dataset.k+'/reset-key',{method:'POST'});result(r,'Nueva clave para '+r.name)}catch(e){$('#r1').textContent=e.message}})}
+async function load(){let d;try{d=await api('stores')}catch(e){return login()}
+$('#out').hidden=false;
+$('#app').innerHTML=`<h1>Negocios</h1>
+<section class="panel"><h2>Crear un negocio</h2><p class="mut" style="font-size:14px">Se crea al instante. Después le envías el mensaje con su clave al dueño.</p>
+<label class="f">Nombre del negocio<input id="nm" maxlength="60" placeholder="Café Galeras"></label>
+<label class="f">Premio<input id="rw" maxlength="80" placeholder="Un café americano gratis"></label>
+<div class="two"><label class="f">Sellos para el premio<select id="gl"><option>6</option><option>8</option><option selected>10</option><option>12</option></select></label><label class="f">Color<input id="cl" type="color" value="#0F6B57"></label></div>
+<div class="inl"><button class="btn pri" id="mk">Crear negocio</button></div><p class="res" id="r1" aria-live="polite"></p><div id="res-box"></div></section>
+<section class="panel" id="lst"></section></section>`;
+$('#mk').onclick=async()=>{const b=$('#mk');b.disabled=true;$('#r1').textContent='';try{const r=await api('stores',{method:'POST',body:JSON.stringify({name:$('#nm').value,reward:$('#rw').value,goal:+$('#gl').value,color:$('#cl').value})});result(r,'Negocio creado: '+r.name);b.disabled=false;
+paint(await api('stores'))}catch(e){$('#r1').textContent=e.message;b.disabled=false}};
+paint(d)}
+$('#out').onclick=()=>{try{sessionStorage.removeItem('sello_super')}catch(e){}KEY='';login()};
+KEY?load():login();
+</script></body></html>

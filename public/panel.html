@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sello – panel del negocio</title>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F6F6F7;--sf:#fff;--ink:#17171B;--mut:#6C6C78;--line:#E7E7EB;--ac:#0F6B57;--acs:#E4F1ED;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root{--bg:#101012;--sf:#18181B;--ink:#F2F2F4;--mut:#9A9AA6;--line:#2A2A30;--acs:#16302A}}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 15px/1.5 Geist,system-ui,-apple-system,sans-serif;font-variant-numeric:tabular-nums}
+.wrap{max-width:760px;margin:0 auto;padding:0 20px 48px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:600;font-size:17px;padding:20px 0}
+.brand i{width:22px;height:22px;border-radius:50%;border:2px solid var(--ac);display:grid;place-items:center}.brand i::after{content:"";width:8px;height:8px;border-radius:50%;background:var(--ac)}
+h1{font-size:22px;font-weight:600;letter-spacing:-.02em;margin:0 0 16px}h2{font-size:16px;font-weight:600;margin:0 0 4px}.mut{color:var(--mut);margin:0}
+.panel{background:var(--sf);border:1px solid var(--line);border-radius:20px;padding:22px;margin-bottom:16px}
+.hero{display:flex;gap:24px;align-items:center}.qr{width:150px;height:150px;flex:none;padding:10px;background:#fff;border:1px solid var(--line);border-radius:16px}.qr img{width:100%;height:100%;display:block}
+.url{display:inline-block;margin:10px 0;padding:6px 10px;background:var(--bg);border:1px solid var(--line);border-radius:8px;font-size:14px;word-break:break-all}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);background:var(--sf);border:1px solid var(--line);border-radius:20px;margin-bottom:16px}
+.stats div{padding:18px 20px}.stats div+div{border-left:1px solid var(--line)}.stats b{display:block;font-size:26px;font-weight:600;letter-spacing:-.02em}.stats span{color:var(--mut);font-size:13px}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:16px}.cols .panel{margin:0}
+.f{display:grid;gap:6px;color:var(--mut);font-size:13px;margin-top:14px}
+input,select,textarea{font:inherit;font-size:15px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:9px 12px;min-width:0}
+.inl{display:flex;gap:10px;margin-top:14px}.inl input{flex:1;letter-spacing:.2em}
+.btn{font:500 14px Geist,system-ui,sans-serif;border-radius:10px;padding:9px 14px;border:1px solid var(--line);background:var(--sf);color:var(--ink);cursor:pointer}.btn.pri{background:var(--ac);border-color:var(--ac);color:#fff}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+.res{min-height:24px;margin:10px 0 0;font-weight:500;font-size:14px}
+ul{list-style:none;margin:0;padding:0}li{display:flex;justify-content:space-between;gap:12px;padding:11px 0;border-top:1px solid var(--line)}li span{color:var(--mut);font-size:13px}
+textarea{width:100%;resize:vertical}.chkl{display:flex;gap:10px;align-items:center;color:var(--ink);font-size:15px}.chkl input{width:auto}.sub{font-size:13px;margin-top:8px}
+.login{max-width:380px;margin:12vh auto 0}
+@media (max-width:640px){.hero{flex-direction:column;align-items:flex-start}.stats{grid-template-columns:1fr 1fr}.stats div:nth-child(3){border-left:0}.stats div:nth-child(n+3){border-top:1px solid var(--line)}.cols{grid-template-columns:1fr}}
+</style></head>
+<body><div class="wrap"><div class="brand"><i></i>sello</div><main id="app"></main></div>
+<script>
+const $=s=>document.querySelector(s);
+const esc=t=>String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let KEY=''; try{KEY=sessionStorage.getItem('sello_key')||''}catch(e){}
+const api=async(p,o={})=>{const r=await fetch('/api/panel/'+p,{...o,headers:{'Content-Type':'application/json','x-admin-key':KEY}});const j=await r.json().catch(()=>({}));if(!r.ok)throw Object.assign(new Error(j.error||'Error'),{status:r.status});return j};
+function login(err){$('#app').innerHTML=`<div class="panel login"><h1>Panel del negocio</h1><p class="mut">Ingresa la clave que recibiste al crear tu negocio.</p><div class="inl"><input id="k" type="password" placeholder="Clave" aria-label="Clave del panel"><button class="btn pri" id="go">Entrar</button></div><p class="res" role="alert">${err||''}</p></div>`;
+$('#go').onclick=async()=>{KEY=$('#k').value.trim();try{await api('me');try{sessionStorage.setItem('sello_key',KEY)}catch(e){}load()}catch(e){login('Clave inválida. Revísala e inténtalo de nuevo.')}}}
+const ago=d=>{const m=Math.round((Date.now()-new Date(d))/60000);return m<1?'ahora':m<60?`hace ${m} min`:m<1440?`hace ${Math.round(m/60)} h`:`hace ${Math.round(m/1440)} d`};
+async function load(){let s,st;try{[s,st]=await Promise.all([api('me'),api('stats')])}catch(e){return login()}
+$('#app').innerHTML=`<h1>${esc(s.name)}</h1>
+<section class="panel"><div class="hero"><div class="qr"><img src="/qr/${esc(s.slug)}.svg" alt="QR del sticker"></div><div><h2>Tu sticker de fidelidad</h2><p class="mut">Imprime este QR y pégalo junto a la caja. Para NFC, escribe este mismo enlace en el tag.</p><span class="url">${esc(s.url)}</span></div></div></section>
+<div class="stats"><div><b>${st.stampsToday}</b><span>Sellos hoy</span></div><div><b>${st.activeCustomers}</b><span>Clientes activos</span></div><div><b>${st.redeemed}</b><span>Premios canjeados</span></div><div><b>${st.returnedPct} %</b><span>Clientes que volvieron</span></div></div>
+<div class="cols"><section class="panel"><h2>Reglas de la tarjeta</h2>
+<label class="f">Sellos para ganar el premio<select id="goal">${[6,8,10,12].map(n=>`<option${n==s.goal?' selected':''}>${n}</option>`).join('')}</select></label>
+<label class="f">Premio<input id="rw" value="${esc(s.reward)}" maxlength="80"></label>
+<label class="f">Tiempo mínimo entre sellos de un mismo cliente<select id="cd">${[[60,'1 hora'],[240,'4 horas'],[720,'12 horas'],[1440,'24 horas']].map(([v,t])=>`<option value="${v}"${v==s.cooldownMinutes?' selected':''}>${t}</option>`).join('')}</select></label>
+<label class="f">Color<input id="col" type="color" value="${esc(s.color)}"></label>
+<div class="inl"><button class="btn pri" id="sv">Guardar cambios</button></div><p class="res" id="r1" aria-live="polite"></p></section>
+<section class="panel"><h2>Validar un canje</h2><p class="mut" style="font-size:14px">El cliente te muestra un código de 4 dígitos en su celular.</p>
+<div class="inl"><input id="cd4" inputmode="numeric" maxlength="4" placeholder="0000" aria-label="Código de canje"><button class="btn pri" id="vl">Validar canje</button></div><p class="res" id="r2" aria-live="polite"></p></section></div>
+<section class="panel" style="margin-top:16px"><h2>Mensajes automáticos</h2>
+<p class="mut" style="font-size:14px">${st.wallets} clientes tienen la tarjeta en Wallet y ${st.contacts} aceptaron recibir mensajes. Avisos enviados en los últimos 30 días: ${st.messages30}.</p>
+<label class="f chkl"><input type="checkbox" id="wn"${s.walletNotify?' checked':''}> Avisar primero por la tarjeta en Wallet (gratis)</label>
+<label class="f chkl" style="margin-top:20px"><input type="checkbox" id="ie"${s.inactivityEnabled?' checked':''}> Avisar a quien lleva tiempo sin venir</label>
+<label class="f">Días sin visitas para avisar<select id="idd">${[14,21,30,45,60,90].map(n=>`<option${n==s.inactivityDays?' selected':''}>${n}</option>`).join('')}</select></label>
+<label class="f">Mensaje<textarea id="it" rows="3" maxlength="500">${esc(s.inactivityText)}</textarea></label>
+<label class="f chkl" style="margin-top:20px"><input type="checkbox" id="be"${s.birthdayEnabled?' checked':''}> Saludar en el cumpleaños</label>
+<label class="f">Mensaje<textarea id="bt" rows="3" maxlength="500">${esc(s.birthdayText)}</textarea></label>
+<p class="mut sub">Puedes usar {nombre}, {negocio}, {premio} y {faltan}.</p>
+<label class="f">Si no tiene la tarjeta en Wallet, enviar por<select id="ch"><option value="email"${s.channel==='email'?' selected':''}>Correo</option><option value="whatsapp"${s.channel==='whatsapp'?' selected':''}>WhatsApp (y correo si no hay celular)</option></select></label>
+<p class="mut sub">${s.emailReady?'':'El correo aún no está activado en el servidor. '}${s.channel==='whatsapp'&&!s.whatsappReady?'WhatsApp aún no está activado en el servidor; se usará el correo.':''}</p>
+<div class="inl"><button class="btn pri" id="sv2">Guardar mensajes</button></div><p class="res" id="r3" aria-live="polite"></p>
+<label class="f">Enviar una prueba a tu correo<div class="inl" style="margin-top:0"><input id="te" type="email" placeholder="tucorreo@ejemplo.com" style="letter-spacing:0"><select id="tk" style="width:auto"><option value="birthday">Cumpleaños</option><option value="inactivity">Inactividad</option></select><button class="btn" id="tb">Enviar prueba</button></div></label><p class="res" id="r4" aria-live="polite"></p></section>
+<section class="panel" style="margin-top:16px"><h2>Actividad reciente</h2><ul>${st.feed.length?st.feed.map(f=>`<li><div>Cliente ···${esc(f.tag)}<br><span>${f.kind==='stamp'?'Sello sumado':'Premio canjeado'}</span></div><span>${ago(f.created_at)}</span></li>`).join(''):'<li><span>Aún no hay actividad. Escanea tu sticker para probar.</span></li>'}</ul></section>`;
+$('#sv').onclick=async()=>{try{await api('settings',{method:'PATCH',body:JSON.stringify({goal:+$('#goal').value,reward:$('#rw').value,cooldownMinutes:+$('#cd').value,color:$('#col').value})});$('#r1').textContent='Cambios guardados.'}catch(e){$('#r1').textContent=e.message}};
+$('#sv2').onclick=async()=>{try{await api('settings',{method:'PATCH',body:JSON.stringify({walletNotify:$('#wn').checked,inactivityEnabled:$('#ie').checked,inactivityDays:+$('#idd').value,inactivityText:$('#it').value,birthdayEnabled:$('#be').checked,birthdayText:$('#bt').value,channel:$('#ch').value})});$('#r3').textContent='Mensajes guardados.'}catch(e){$('#r3').textContent=e.message}};
+$('#tb').onclick=async()=>{try{await api('test-message',{method:'POST',body:JSON.stringify({email:$('#te').value,kind:$('#tk').value})});$('#r4').textContent='Prueba enviada. Revisa tu bandeja (y el spam).'}catch(e){$('#r4').textContent=e.message}};
+$('#vl').onclick=async()=>{try{const r=await api('redeem',{method:'POST',body:JSON.stringify({code:$('#cd4').value})});$('#r2').textContent='Canje validado. Entrega: '+r.reward+'.';$('#cd4').value='';setTimeout(load,1500)}catch(e){$('#r2').textContent=e.message}}}
+KEY?load():login();
+</script></body></html>

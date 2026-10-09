@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tu tarjeta de fidelidad</title>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F6F6F7;--sf:#fff;--ink:#17171B;--mut:#6C6C78;--line:#E7E7EB;--ac:#0F6B57;--acs:#E4F1ED;--on:#fff;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root{--bg:#101012;--sf:#18181B;--ink:#F2F2F4;--mut:#9A9AA6;--line:#2A2A30;--acs:#16302A}}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 15px/1.5 Geist,system-ui,-apple-system,sans-serif;font-variant-numeric:tabular-nums}
+.wrap{max-width:440px;margin:0 auto;padding:0 20px 40px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:600;font-size:17px;padding:20px 0}
+.brand i{width:22px;height:22px;border-radius:50%;border:2px solid var(--ac);display:grid;place-items:center}.brand i::after{content:"";width:8px;height:8px;border-radius:50%;background:var(--ac)}
+.card{background:var(--sf);border:1px solid var(--line);border-radius:20px;padding:22px}
+.ch{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px}
+h1{font-size:22px;font-weight:600;letter-spacing:-.02em;margin:0}.mut{color:var(--mut);margin:0}
+.cnt{text-align:right;line-height:1}.cnt b{font-size:34px;font-weight:600;letter-spacing:-.03em}.cnt span{display:block;color:var(--mut);font-size:13px;margin-top:6px}
+.grid{display:grid;grid-template-columns:repeat(var(--c),1fr);gap:11px}
+.st{aspect-ratio:1;border-radius:50%;border:1.5px dashed var(--line);display:grid;place-items:center;color:#fff}
+.st.on{background:var(--ac);border:1.5px solid var(--ac)}.st.pop{animation:pop .5s cubic-bezier(.3,1.6,.5,1)}
+@keyframes pop{from{transform:scale(.3)}to{transform:scale(1)}}
+.msg{margin:18px 0 0;font-weight:500}.msg.mut{font-weight:400}
+.btn{display:block;width:100%;text-align:center;text-decoration:none;font:500 15px Geist,system-ui,sans-serif;border-radius:12px;padding:13px 16px;border:1px solid var(--line);background:var(--sf);color:var(--ink);cursor:pointer;margin-top:10px}
+.btn.pri{background:var(--ac);border-color:var(--ac);color:#fff}
+button:focus-visible,a:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+.code{font-size:52px;font-weight:600;letter-spacing:.12em;text-align:center;margin:14px 0 2px}
+.wl{margin-top:18px;padding-top:6px;border-top:1px solid var(--line)}
+@media (prefers-reduced-motion:reduce){.st.pop{animation:none}}
+.f{display:grid;gap:6px;color:var(--mut);font-size:13px;margin-top:14px}.two{display:grid;grid-template-columns:1fr 1.6fr;gap:10px}
+input,select{font:inherit;font-size:16px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px;min-width:0;width:100%}
+input[type=checkbox]{width:auto;margin-top:3px}.chk{display:flex;gap:10px;margin-top:16px;font-size:13px;color:var(--mut);align-items:flex-start}.chk a{color:var(--ink)}
+.err{color:#B3261E;font-weight:500;margin:12px 0 0;min-height:1px}h2{font-size:18px;font-weight:600;margin:0 0 4px;letter-spacing:-.01em}
+.fine{display:flex;gap:18px;flex-wrap:wrap;margin:14px 0 0;font-size:13px}.fine a{color:var(--mut)}.stack{display:grid;gap:14px}
+</style></head>
+<body><div class="wrap"><div class="brand"><i></i>sello</div><main id="app"><p class="mut">Cargando tu tarjeta…</p></main></div>
+<script>
+const slug=location.pathname.split('/')[2];
+const $=s=>document.querySelector(s);
+const esc=t=>String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const ck='<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+const call=async(p,m='POST',b)=>{const r=await fetch(`/api/c/${slug}/${p}`,{method:m,headers:{'Content-Type':'application/json'},body:b?JSON.stringify(b):undefined});return r.json()};
+let PROFILE={};
+const MES=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+function form(c){const p=PROFILE||{};
+ const days=Array.from({length:31},(_,i)=>`<option value="${i+1}"${p.birthDay==i+1?' selected':''}>${i+1}</option>`).join('');
+ const mons=MES.map((m,i)=>`<option value="${i+1}"${p.birthMonth==i+1?' selected':''}>${m}</option>`).join('');
+ return `<article class="card" id="pf"><h2>Recibe tu premio y novedades</h2><p class="mut">Déjanos tus datos y te avisamos cuando te extrañemos y en tu cumpleaños.</p>
+ <label class="f">Nombre<input id="pn" autocomplete="given-name" maxlength="60" value="${esc(p.name||'')}"></label>
+ <label class="f">Correo<input id="pe" type="email" autocomplete="email" value="${esc(p.email||'')}"></label>
+ <label class="f">Celular<input id="pp" type="tel" inputmode="tel" autocomplete="tel" placeholder="3101234567" value="${esc((p.phone||'').replace('+57',''))}"></label>
+ <div class="f">Cumpleaños (opcional)<div class="two"><select id="pd" aria-label="Día"><option value="">Día</option>${days}</select><select id="pm" aria-label="Mes"><option value="">Mes</option>${mons}</select></div></div>
+ <label class="chk"><input type="checkbox" id="pc"><span>Autorizo a ${esc(c.store.name)} a tratar mi nombre, correo, celular y cumpleaños para enviarme recordatorios y promociones, según la <a href="/privacidad" target="_blank" rel="noopener">política de tratamiento de datos</a>. Puedo retirar mi autorización cuando quiera.</span></label>
+ <p class="err" id="pr" role="alert"></p><button class="btn pri" id="ps">Guardar mis datos</button><button class="btn" id="pk">Ahora no</button></article>`}
+const ios=/iPhone|iPad|iPod/.test(navigator.userAgent),and=/Android/.test(navigator.userAgent);
+let timer;
+function wait(m){return m>=60?`${Math.ceil(m/60)} h`:`${m} min`}
+function render(d,note,popLast){
+ if(!d.error&&note===undefined)note='';
+ if(d.error){$('#app').innerHTML=`<div class="card"><h1>No encontramos este negocio</h1><p class="mut">Revisa que el sticker sea el correcto.</p></div>`;return}
+ const c=d.card,done=c.ready,f=c.goal-c.stamps;
+ document.documentElement.style.setProperty('--ac',c.store.color);
+ let g='';for(let i=0;i<c.goal;i++){const on=i<c.stamps;g+=`<span class="st${on?' on':''}${popLast&&on&&i===c.stamps-1?' pop':''}">${on?ck:''}</span>`}
+ let wal='';
+ if(!ios)wal+=`<a class="btn" href="/wallet/google/${c.id}">Añadir a Google Wallet</a>`;
+ if(!and)wal+=`<a class="btn" href="/wallet/apple/${c.id}.pkpass">Añadir a Apple Wallet</a>`;
+ $('#app').innerHTML=`<div class="stack"><article class="card"><div class="ch"><div><h1>${esc(c.store.name)}</h1><p class="mut">Tarjeta de fidelidad</p></div><div class="cnt"><b>${c.stamps}</b><span>de ${c.goal} sellos</span></div></div>
+ <div class="grid" style="--c:${c.goal<=6?c.goal:Math.ceil(c.goal/2)}">${g}</div>
+ ${note?`<p class="msg">${esc(note)}</p>`:''}
+ ${c.redeemCode?`<div class="code">${c.redeemCode}</div><p class="mut" style="text-align:center">Muestra este código al personal. Vale 10 minutos.</p>`
+ :done?`<p class="msg mut">Tu premio: ${esc(c.reward)}.</p><button class="btn pri" id="rd">Canjear premio</button>`
+ :`<p class="msg mut">${f==1?'Te falta 1 sello':'Te faltan '+f+' sellos'} para: ${esc(c.reward)}.</p>`}
+ <div class="wl">${wal}</div></article>
+ ${!c.consent&&!c.dismissed?form(c):''}
+ ${c.consent?'<p class="fine"><a href="#" id="un">Dejar de recibir mensajes</a><a href="#" id="er">Borrar mis datos</a></p>':''}</div>`;
+ const b=$('#rd');if(b)b.onclick=async()=>{b.disabled=true;render(await call('redeem'),'');poll()};
+ const ps=$('#ps');if(ps){
+  ps.onclick=async()=>{ps.disabled=true;const body={name:$('#pn').value,email:$('#pe').value,phone:$('#pp').value,birthMonth:$('#pm').value,birthDay:$('#pd').value,consent:$('#pc').checked};
+   const r=await call('profile','POST',body);ps.disabled=false;if(r.error){$('#pr').textContent=r.error;return}
+   PROFILE={name:body.name,email:body.email,phone:body.phone,birthMonth:body.birthMonth,birthDay:body.birthDay};render({card:r.card},'Listo, gracias. Te avisaremos las novedades.')};
+  $('#pk').onclick=async()=>{await call('profile','POST',{dismiss:true});render({card:{...c,dismissed:true}},note)}}
+ const un=$('#un');if(un)un.onclick=async e=>{e.preventDefault();await call('profile','POST',{consent:false});render({card:{...c,consent:false,dismissed:true}},'Listo. No recibirás más mensajes.')};
+ const er=$('#er');if(er)er.onclick=async e=>{e.preventDefault();if(!confirm('¿Borrar tus datos de contacto?'))return;await call('profile','POST',{erase:true});PROFILE={};render({card:{...c,consent:false,dismissed:true}},'Tus datos fueron borrados.')};
+}
+function poll(){clearInterval(timer);timer=setInterval(async()=>{const d=await call('card','GET');if(d.card&&!d.card.redeemCode){clearInterval(timer);render(d,'Premio entregado. ¡Gracias por volver!')}},5000)}
+(async()=>{
+ const d=await call('stamp');PROFILE=d.profile||{};
+ const msgs={stamped:'Sello sumado.',complete:'Tu tarjeta está completa. Canjea tu premio.'};
+ const note=d.status==='cooldown'?`Ya sumaste un sello hace poco. Vuelve en ${wait(d.retryInMinutes)}.`:msgs[d.status]||'';
+ render(d,note,d.status==='stamped');
+ if(d.card&&d.card.redeemCode)poll();
+})().catch(()=>{$('#app').innerHTML='<div class="card"><h1>Sin conexión</h1><p class="mut">Vuelve a escanear el sticker en un momento.</p></div>'});
+</script></body></html>
